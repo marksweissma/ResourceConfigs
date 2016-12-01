@@ -1,0 +1,311 @@
+alias ipyg='ipython --profile galvanize'
+PATH=$PATH:~/code/
+source ~/ResourceConfigs/bash_prompt
+
+alias ccode="cd ~/code"
+
+alias vp="vi ~/ResourceConfigs/bash_prompt"
+
+alias later="ls -lahrt"
+alias rlf='readlink -f'
+
+alias sa="source ~/.bash_profile"
+alias va="vi ~/ResourceConfigs/bash_config"
+
+alias mkhtml='make html'
+
+alias vv='vi ~/.vimrc'
+
+alias uniqc='sort | uniq -c'
+
+alias make_gif='convert -delay 10 -loop 0 scalar_vec*png scalar_vec.gif'
+
+# Setting PATH for Python 2.7
+PATH="/Library/Frameworks/Python.framework/Versions/2.7/bin:${PATH}"
+export PATH
+
+# added by Anaconda2 4.0.0 installer
+export PATH="//anaconda/bin:$PATH"
+export PATH=/Applications/Postgres.app/Contents/Versions/latest/bin:$PATH
+
+#######
+##Git##
+#######
+alias gmaster='git checkout master'
+alias gdevel='git checkout devel'
+
+gh_makehtml(){
+    dir=$PWD
+    cd $1
+    make html
+    cd $2
+    git add .
+    git commit -m "."
+    git push origin gh-pages
+    cd $dir
+}
+
+
+
+alias gghpage='git checkout gh-pages'
+alias push_master='git push origin master'
+alias push_gh-pages='git push origin gh-pages'
+
+gh_pages_init(){
+    git symbolic-ref HEAD refs/heads/gh-pages
+    rm .git/index
+    git clean -fdx
+}
+
+
+###############
+##Navigation###
+###############
+cdg(){
+    cd ~/galvanize/day$1
+}
+
+cdl(){
+    cd $1
+    later
+}
+
+cdf(){
+    cdl $(dirname $1)
+}
+
+
+tfind(){
+    find $1 -mtime $2
+}
+nfind(){
+    find $1 -name $2
+}
+tnfind(){
+    name=$3
+    find $1 -mtime $2 -name $name
+}
+
+tfindf(){
+    find $1 -mtime $2 -type f
+}
+nfindf(){
+    find $1 -name $2 -type f
+}
+tnfindf(){
+    find $1 -mtime $2 -name $3 -type f
+}
+
+tfindd(){
+    find $1 -mtime $2 -type d
+}
+nfindd(){
+    find $1 -name $2 -type d
+}
+tnfindd(){
+    find $1 -mtime $2 -name $3 -type d
+}
+
+ltfind(){
+    
+    later $(tfind $1 $2)
+}
+lnfind(){
+    later $(nfind $1 $2)
+}
+ltnfind(){
+    later $(tnfind $1 $2 $3)
+}
+
+ltfindf(){
+    later $(tfindf $1 $2)
+}
+lnfindf(){
+    later $(nfindf $1 $2)
+}
+ltnfindf(){
+    later $(tnfindf $1 $2 $3)
+}
+
+htfindf(){
+    head $(tfindf $1 $2)
+}
+hnfindf(){
+    head $(nfindf $1 $2)
+}
+htnfindf(){
+    head $(tnfindf $1 $2 $3)
+}
+
+ttfindf(){
+    tail $(tfindf $1 $2)
+}
+later_nfile(){
+    fs=$(nfindf $1 $2)
+    for f in $fs
+    do 
+        fdir=$(dirname $f)
+        echo $fdir
+        later $fdir
+    done
+}
+
+later_tfile(){
+    fs=$(tfindf $1 $2)
+    for f in $fs
+    do 
+        fdir=$(dirname $f)
+        echo $fdir
+        later $fdir
+    done
+}
+
+cdfr(){
+    cdf $(ltfindf . -60 | tail -1 | rev | cut -d" " -f1 | rev)
+}
+
+hfr(){
+    head $(ltfindf . -60 | tail -1 | rev | cut -d" " -f1 | rev)
+}
+
+hftr(){
+    head $(ltfindf . -60 | tail $1 | rev | cut -d" " -f1 | rev)
+}
+
+hfnr(){
+    n=$1
+    head $(ltnfindf . -60 $n | tail $2 | rev | cut -d" " -f1 | rev)
+}
+
+uniq_field_tndf(){
+    for f in $(tnfindf . $1 $2)
+    do
+        echo $f
+        print_field $3 $4 $f | sort | uniq -c
+    done
+}
+
+#######
+#Spark#
+#######
+export SPARK_HOME="/Users/markweiss/spark/spark-1.5.0-bin-hadoop1/"
+export PYTHONPATH="/Users/markweiss/spark/spark-1.5.0-bin-hadoop1/python:${PYTHONPATH}"
+export SPARK_HIVE="true"
+
+#######
+#Python
+#######
+vip(){
+    if [ ! -f $1 ]; then
+    cp ~/ResourceConfigs/template.py $1
+    fi
+    vi $1
+}
+
+###########
+#Galvanize#
+###########
+news(){
+    mkdir mini_20_newsgroups
+    mkdir mini_20_newsgroups/comp.windows.x
+    mkdir mini_20_newsgroups/rec.motorcycles
+    mkdir mini_20_newsgroups/sci.med
+    cp 20_newsgroups/comp.windows.x/663* mini_20_newsgroups/comp.windows.x
+    cp 20_newsgroups/rec.motorcycles/10311* mini_20_newsgroups/rec.motorcycles
+    cp 20_newsgroups/sci.med/5889* mini_20_newsgroups/sci.med
+}
+
+#############
+##Text Edit##
+#############
+
+train(){
+    for i in $(ls $1); do
+    awk  -F"," 'FNR > 1 {print $1","$14","$15","$16","$18","$20","$21","$25}' $i > 'temp.csv' 
+    cat 'temp.csv' >> $2
+    done
+    rm 'temp.csv'
+    }
+
+trn_ls(){
+    for i in $(ls $1); do echo $i; done
+    }
+ 
+head1(){
+    head -1 $1
+}
+
+nf1(){
+    head1 $2 | awk -F$1 '{print NF}'
+}
+
+field_count(){
+    awk -F$1 '{print NF}' $2 | sort | uniq -c
+}
+
+print_field(){
+    col=$2
+    awk -F$1 '{print $'$col'}' $3 
+}
+
+strip_bad_lines(){
+    awk -F$1 '(NF=='$2'){print $0}' $3 > "$3_stripped"
+}
+
+strip_blh(){
+    cols=$(nf1 $1 $2)
+    strip_bad_lines $1 $cols $2
+}
+
+cutdf(){
+    cut -d$1 -f$2 $3
+}
+col_uniqc(){
+    cut -d$1 -f$2 $3 | uniqc
+}
+
+loop_field_count(){
+for f in $(tnfindf . $2 $3)
+do
+    echo $f
+    field_count $1 $f 
+done
+}
+
+remove_block_white(){
+    sed -i "s/\s\s//g" $1
+}
+
+remove_trail_sep(){
+    sed -i "s/\s$2/$2/g" $1
+}
+
+rm_fl(){
+    sed -i -e "1d" $1
+}
+
+##########
+##Colors##
+##########
+export TERM=xterm-color
+export GREP_OPTIONS='--color=auto' GREP_COLOR='1;32'
+export CLICOLOR=1
+export LSCOLORS=ExFxCxDxBxegedabagacad
+
+export COLOR_NC='\e[0m' # No Color
+export COLOR_WHITE='\e[1;37m'
+export COLOR_BLACK='\e[0;30m'
+export COLOR_BLUE='\e[0;34m'
+export COLOR_LIGHT_BLUE='\e[1;34m'
+export COLOR_GREEN='\e[0;32m'
+export COLOR_LIGHT_GREEN='\e[1;32m'
+export COLOR_CYAN='\e[0;36m'
+export COLOR_LIGHT_CYAN='\e[1;36m'
+export COLOR_RED='\e[0;31m'
+export COLOR_LIGHT_RED='\e[1;31m'
+export COLOR_PURPLE='\e[0;35m'
+export COLOR_LIGHT_PURPLE='\e[1;35m'
+export COLOR_BROWN='\e[0;33m'
+export COLOR_YELLOW='\e[1;33m'
+export COLOR_GRAY='\e[0;30m'
+export COLOR_LIGHT_GRAY='\e[0;37m'
